@@ -1,0 +1,11 @@
+import express from "express";
+
+import { createMember } from "../controllers/member.controller.js";
+import { authenticate } from "../middleware/auth.middleware.js";
+
+
+const router = express.Router();
+
+router.post("/", authenticate, createMember);
+
+export default router;
