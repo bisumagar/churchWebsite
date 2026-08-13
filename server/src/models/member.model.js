@@ -34,6 +34,11 @@ const memberSchema = new mongoose.Schema(
       default: "active",
     },
 
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
     joinedDate: {
       type: Date,
       default: Date.now,
@@ -63,7 +68,7 @@ const memberSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Member = mongoose.model("Member", memberSchema);
