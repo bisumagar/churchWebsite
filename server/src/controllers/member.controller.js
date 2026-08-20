@@ -20,24 +20,59 @@ export const createMember = async (req, res) => {
 };
 
 export const getAllMembers = async (req, res) => {
-  try{
-    const members = await getAllMembersService();
+  try {
+    const page =
+      req.query.page === undefined ? 1 : Number(req.query.page);
+
+    const limit =
+      req.query.limit === undefined ? 10 : Number(req.query.limit);
+
+    const search = req.query.search?.trim();
+
+    const gender = req.query.gender;
+    
+
+    // Your existing page validation
+    if (!Number.isInteger(page) || page < 1) {
+      const error = new Error("Page must be a positive integer");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Your existing limit validation
+    if (!Number.isInteger(limit) || limit < 1) {
+      const error = new Error("Limit must be a positive integer");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (limit > 100) {
+      const error = new Error("Limit cannot exceed 100");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const result = await getAllMembersService(
+      page,
+      limit,
+      search
+    );
+
     return res.status(200).json({
       success: true,
       message: "Members retrieved successfully",
-      data: members,
+      data: result.members,
+      pagination: result.pagination,
     });
   } catch (error) {
     console.error("Get all members error:", error);
 
     return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message || "Failed to retrieve members",   
-      
-    })
+      message: error.message || "Failed to retrieve members",
+    });
   }
 };
-
 export const getMemberById = async (req, res) => {
   try {
     const member = await getMemberByIdService(req.params.id);
