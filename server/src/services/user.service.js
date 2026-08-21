@@ -1,3 +1,4 @@
+import Member from "../models/member.model.js";
 import User from "../models/user.model.js";
 
 
@@ -149,25 +150,35 @@ if (!hasUpdate) {
 };
 
 export const deactivateUserService = async (userId) => {
-    const user = await User.findById(userId);
+  const user = await User.findById(userId);
 
-    if (!user) {
-        const error = new Error("User not found");
-        error.statusCode = 404;
-        throw error;
-    }
-    
-    if (!user.isActive) {
-        const error = new Error("User account is already inactive");
-        error.statusCode = 400;
-        throw error;
-    }
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
 
-    user.isActive = false;
-    await user.save();
+  if (!user.isActive) {
+    const error = new Error("User account is already inactive");
+    error.statusCode = 400;
+    throw error;
+  }
 
-    return user;
-}
+  // Deactivate User
+  user.isActive = false;
+  await user.save();
+
+  // Deactivate related Member profile
+  const member = await Member.findOne({ userId });
+
+  if (member) {
+    member.isActive = false;
+    member.membershipStatus = "inactive";
+    await member.save();
+  }
+
+  return user;
+};
 
 export const activateUserService = async (userId) => {
   const user = await User.findById(userId);
@@ -184,13 +195,21 @@ export const activateUserService = async (userId) => {
     throw error;
   }
 
+  // Activate User
   user.isActive = true;
-
   await user.save();
+
+  // Activate related Member profile
+  const member = await Member.findOne({ userId });
+
+  if (member) {
+    member.isActive = true;
+    member.membershipStatus = "active";
+    await member.save();
+  }
 
   return user;
 };
-
 export const updateUserRoleService = async (userId, role) => {
   const user = await User.findById(userId);
 

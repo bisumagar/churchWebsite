@@ -1,8 +1,19 @@
-import { activateMemberService, createMemberService, deactivateMemberService, getAllMembersService, getMemberByIdService, updateMemberService } from "../services/member.service.js";
+import {
+  activateMemberService,
+  createMemberService,
+  deactivateMemberService,
+  getAllMembersService,
+  getMemberByIdService,
+  updateMemberService,
+} from "../services/member.service.js";
 
 export const createMember = async (req, res) => {
   try {
-    const member = await createMemberService(req.body);
+    const member = await createMemberService(
+  req.body,
+  req.user.userId,
+  req.user.role
+);
 
     return res.status(201).json({
       success: true,
@@ -21,16 +32,22 @@ export const createMember = async (req, res) => {
 
 export const getAllMembers = async (req, res) => {
   try {
-    const page =
-      req.query.page === undefined ? 1 : Number(req.query.page);
+    const page = req.query.page === undefined ? 1 : Number(req.query.page);
 
-    const limit =
-      req.query.limit === undefined ? 10 : Number(req.query.limit);
+    const limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
 
     const search = req.query.search?.trim();
 
     const gender = req.query.gender;
-    
+
+    const ministry = req.query.ministry;
+
+    const membershipStatus = req.query.membershipStatus;
+
+    const isActive =
+      req.query.isActive !== undefined
+        ? req.query.isActive === "true"
+        : undefined;
 
     // Your existing page validation
     if (!Number.isInteger(page) || page < 1) {
@@ -55,7 +72,11 @@ export const getAllMembers = async (req, res) => {
     const result = await getAllMembersService(
       page,
       limit,
-      search
+      search,
+      gender,
+      ministry,
+      membershipStatus,
+      isActive,
     );
 
     return res.status(200).json({
@@ -80,7 +101,7 @@ export const getMemberById = async (req, res) => {
       success: true,
       message: "Member retrieved successfully",
       data: member,
-    });   
+    });
   } catch (error) {
     console.error("Get member by ID error:", error);
 
@@ -89,15 +110,15 @@ export const getMemberById = async (req, res) => {
       message: error.message || "Failed to retrieve member",
     });
   }
-}
+};
 
- export const updateMember = async (req, res) => {
+export const updateMember = async (req, res) => {
   try {
     const member = await updateMemberService(
       req.params.id,
       req.body,
       req.user.userId,
-      req.user.role
+      req.user.role,
     );
 
     return res.status(200).json({
@@ -123,14 +144,14 @@ export const deactivateMember = async (req, res) => {
       success: true,
       message: "Member deactivated successfully",
       data: member,
-    }); 
+    });
   } catch (error) {
     console.error("Deactivate member error:", error);
 
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Failed to deactivate member",
-    });   
+    });
   }
 };
 
@@ -151,5 +172,4 @@ export const activateMember = async (req, res) => {
       message: error.message || "Failed to activate member",
     });
   }
-};      
-  
+};
